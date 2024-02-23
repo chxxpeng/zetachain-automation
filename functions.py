@@ -556,4 +556,51 @@ def add_liquidity_range(private_key: str, proxy=None):
     print(f"{current_time()} | Range deposit TX hash: {transaction_hash}")
     time.sleep(transactions_break_time)
 
+def exe_contract(contract,func,args,private_key,value=0,proxy=None):
+    web3 = create_web3_with_proxy(RPC, proxy)
+    account = web3.eth.account.from_key(private_key)
+    tx = contract.functions[func](*args).build_transaction(
+        {
+            "from": account.address,
+            "value": value,
+            "nonce": web3.eth.get_transaction_count(account.address),
+            "gasPrice": web3.eth.gas_price,
+            "chainId": 7000,
+        }
+    )
+    tx["gas"] = int(web3.eth.estimate_gas(tx))
+    signed_txn = web3.eth.account.sign_transaction(tx, private_key)
+    transaction_hash = web3.eth.send_raw_transaction(signed_txn.rawTransaction).hex()
+    print(f"{current_time()} | Waiting for  TX to complete...")
+    receipt = web3.eth.wait_for_transaction_receipt(transaction_hash)
+    if receipt.status != 1:
+        print(f"{current_time()} | Transaction {transaction_hash} failed!")
+        time.sleep(transactions_break_time)
+    print(f"{current_time()} | TX hash: {transaction_hash}")
+    time.sleep(transactions_break_time)
 
+
+def _deposit_af(private_key,value=10**15,proxy=None):
+    from contracts_abi import af_deposit_abi
+    web3 = create_web3_with_proxy(RPC, proxy)
+    account = web3.eth.account.from_key(private_key)
+    address = "0xcf1A40eFf1A4d4c56DC4042A1aE93013d13C3217"
+    contract = web3.eth.contract(address=address,abi=af_deposit_abi)
+    exe_contract(contract,"deposit",[account.address],private_key,value,proxy)
+
+def af_mint_and_stake(private_key,proxy=None):
+    from contracts_abi import af_deposit2_abi
+    web3 = create_web3_with_proxy(RPC, proxy)
+    account = web3.eth.account.from_key(private_key)
+    value = 10**15
+    # _deposit_af(private_key,value,proxy)
+    stZeta = "0xcba2aeEc821b0B119857a9aB39E09b034249681A"
+    wstZeta = "0x7AC168c81F4F3820Fa3F22603ce5864D6aB3C547"
+    _approve(private_key,stZeta,wstZeta)
+    
+    wstZeta_contract = web3.eth.contract(address=wstZeta,abi=af_deposit2_abi)
+    args = (
+        value,
+        account.address
+    )
+    exe_contract(wstZeta_contract,"deposit",args,private_key,0,proxy)
