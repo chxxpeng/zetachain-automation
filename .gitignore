@@ -1,0 +1,79 @@
+# C++源代码
+ipch/
+Release/
+
+*.sdf
+*.suo
+*.exp
+*.pdb
+*.cd
+cofig.py
+# Python编译文件
+*.pyc
+*.pyo
+build/
+dist/
+vnpy.egg-info/
+# WingIDE文件
+*.wpr
+*.wpu
+*.log
+*.csv
+data/
+__pycache__/
+daily_report/archive/
+log/
+.vscode/
+# *.json
+# 压缩文件
+*.zip
+.DS_Store
+# API的.con文件
+*.con
+
+# visual studio
+*.opensdf
+
+# 本地持久化文件
+*.vn
+
+
+
+# 其他文件
+*.dump
+*.vssettings
+*.klg
+*.lkc
+
+# 不想同步的
+*.numbers
+*.xls
+*.xlsx
+*.local
+*.temp
+*.vt
+*.log
+vn.ctp/build/*
+vn.lts/build/*
+.idea
+.vscode
+# .gitignore
+config.py
+vn.trader/ctaAlgo/data/*
+vn.trader/build/*
+vn.trader/dist/*
+*.bak
+test_run*.py
+# 测试脚本
+*test*.py
+.env
+option_doc_en-master/*
+*.sh
+
+*test*.txt
+
+*.pickle
+!start.sh
+*.json
+
+config/*

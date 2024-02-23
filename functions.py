@@ -3,7 +3,7 @@ import time
 from web3 import Web3
 from eth_account.messages import encode_structured_data
 from fake_useragent import UserAgent
-from contracts_abi import pool_abi, approve_abi, encoding_contract_abi, multicall_abi
+from contracts_abi import pool_abi, approve_abi, encoding_contract_abi, multicall_abi,range_vault_abi
 from config import (
     RPC,
     BSC_RPC,
@@ -483,3 +483,77 @@ def bsc_izumi_quest(private_key: str, proxy=None):
         time.sleep(transactions_break_time)
     print(f"{current_time()} | Receive BNB TX: {transaction_hash}")
     time.sleep(transactions_break_time)
+      
+
+def _approve(private_key,token,spender, proxy=None):
+    
+    web3 = create_web3_with_proxy(RPC, proxy)
+    account = web3.eth.account.from_key(private_key)
+    contract = web3.eth.contract(
+        address=token,
+        abi=approve_abi,
+    )
+    tx = contract.functions.approve(spender, 2**256-1).build_transaction(
+        {
+            "from": account.address,
+            "value": 0,
+            "nonce": web3.eth.get_transaction_count(account.address),
+            "gasPrice": web3.eth.gas_price,
+            "chainId": 7000,
+        }
+    )
+    tx["gas"] = int(web3.eth.estimate_gas(tx))
+    signed_txn = web3.eth.account.sign_transaction(tx, private_key)
+    transaction_hash = web3.eth.send_raw_transaction(signed_txn.rawTransaction).hex()
+    print(f"{current_time()} | Waiting for Approve TX to complete...")
+    receipt = web3.eth.wait_for_transaction_receipt(transaction_hash)
+    if receipt.status != 1:
+        print(f"{current_time()} | Transaction {transaction_hash} failed!")
+        time.sleep(transactions_break_time)
+    print(f"{current_time()} | Approve hash: {transaction_hash}")
+    time.sleep(transactions_break_time)
+
+def approve_range_vault(private_key, proxy=None):
+    USDT_ETH = "0x7c8dDa80bbBE1254a7aACf3219EBe1481c6E01d7"
+    WZETA = "0x5F0b1a82749cb4E2278EC87F8BF6B618dC71a8bf"
+    range_vault_address = "0xC69Aa5d11B9B3B8Af0699603F4B8779a1eF200a3"
+    _approve(private_key,USDT_ETH,range_vault_address, proxy)
+    _approve(private_key,WZETA,range_vault_address, proxy)    
+    
+
+import random
+def add_liquidity_range(private_key: str, proxy=None):
+    range_vault_address = "0xC69Aa5d11B9B3B8Af0699603F4B8779a1eF200a3"
+    approve_range_vault(private_key, proxy)
+    web3 = create_web3_with_proxy(RPC, proxy)
+    contract = web3.eth.contract(
+        address=web3.to_checksum_address(range_vault_address),
+        abi=range_vault_abi,
+    )
+    account = web3.eth.account.from_key(private_key)
+    
+    tx = contract.functions.mint(
+        random.randint(20_0000,30_0000),
+        (10**16 - random.randint(1,10000), 60000 - random.randint(1,1000))
+        
+    ).build_transaction(
+        {
+            "from": account.address,
+            "value": web3.to_wei(0, "ether"),
+            "nonce": web3.eth.get_transaction_count(account.address),
+            "gasPrice": web3.eth.gas_price,
+            "chainId": 7000,
+        }
+    )
+    tx["gas"] = int(web3.eth.estimate_gas(tx))
+    signed_txn = web3.eth.account.sign_transaction(tx, private_key)
+    transaction_hash = web3.eth.send_raw_transaction(signed_txn.rawTransaction).hex()
+    print(f"{current_time()} | Waiting for Range deposit TX to complete...")
+    receipt = web3.eth.wait_for_transaction_receipt(transaction_hash)
+    if receipt.status != 1:
+        print(f"{current_time()} | Transaction {transaction_hash} failed!")
+        time.sleep(transactions_break_time)
+    print(f"{current_time()} | Range deposit TX hash: {transaction_hash}")
+    time.sleep(transactions_break_time)
+
+
