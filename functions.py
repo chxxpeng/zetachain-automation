@@ -593,7 +593,7 @@ def af_mint_and_stake(private_key,proxy=None):
     web3 = create_web3_with_proxy(RPC, proxy)
     account = web3.eth.account.from_key(private_key)
     value = 10**15
-    # _deposit_af(private_key,value,proxy)
+    _deposit_af(private_key,value,proxy)
     stZeta = "0xcba2aeEc821b0B119857a9aB39E09b034249681A"
     wstZeta = "0x7AC168c81F4F3820Fa3F22603ce5864D6aB3C547"
     _approve(private_key,stZeta,wstZeta)
